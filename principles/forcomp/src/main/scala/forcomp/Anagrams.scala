@@ -57,7 +57,7 @@ object Anagrams extends AnagramsInterface:
    *    List(('a', 1), ('e', 1), ('t', 1)) -> Seq("ate", "eat", "tea")
    *
    */
-  lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] = dictionary.groupBy(word => wordOccurrences(word))
+  lazy val dictionaryByOccurrences: Map[Occurrences, Sentence] = dictionary.groupBy(word => wordOccurrences(word))
 
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] = dictionaryByOccurrences.getOrElse(wordOccurrences(word), List())
@@ -144,7 +144,18 @@ object Anagrams extends AnagramsInterface:
    *
    *  Note: There is only one anagram of an empty sentence.
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] =
+    def anagrams(occurrences: Occurrences): List[Sentence] =
+      if occurrences.isEmpty then List(List())
+      else for
+        c <- Anagrams.combinations(occurrences)
+        sentence <- dictionaryByOccurrences.getOrElse(c, List())
+        remainingComb <- anagrams(subtract(occurrences, c))
+      yield sentence :: remainingComb
+
+    anagrams(sentenceOccurrences(sentence))
+
+
 
 object Dictionary:
   def loadDictionary: List[String] =
